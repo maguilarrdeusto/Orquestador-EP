@@ -1,14 +1,13 @@
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from models import EPRequest, EPResponse
+from .models import EPRequest, EPResponse
 import os
 from dotenv import load_dotenv
 
 # Cargar variables de entorno
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
-
 
 # Prompt base
 PROMPT_CONTEXT = """
@@ -37,14 +36,29 @@ PROMPT_CONTEXT = """
                     """
 
 # Setup del agente
-llm = ChatOpenAI(temperature=0, model="gpt-4")
+llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
 prompt = ChatPromptTemplate.from_messages([
-    ("system", PROMPT_CONTEXT),
-    MessagesPlaceholder(variable_name="chat_history"),
-    ("human", "{input}")
+    ("system", PROMPT_CONTEXT + "\n\nTools: {tools}\nTool Names: {tool_names}"),
+    ("human", "{input}"),
+    ("assistant", "Let's approach this step by step:\n{agent_scratchpad}")
 ])
-agent = create_react_agent(llm=llm, prompt=prompt)
-agent_executor = AgentExecutor(agent=agent, tools=[], verbose=True, return_intermediate_steps=True)
+
+# Create a list of empty tools since this agent doesn't need any
+tools = []
+
+# Create the agent with required parameters
+agent = create_react_agent(
+    llm=llm,
+    tools=tools,
+    prompt=prompt
+)
+
+agent_executor = AgentExecutor(
+    agent=agent,
+    tools=tools,
+    verbose=True,
+    return_intermediate_steps=True
+)
 
 # Generar input textual
 def construir_input(payload: EPRequest) -> str:
