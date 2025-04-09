@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from Orchestor import evaluar_ep
-from models import EPRequest, EPResponse
+from Backend.models import EPRequest, EPResponse  
+from Backend.Orchestor import evaluar_ep
 
 app = FastAPI()
 
